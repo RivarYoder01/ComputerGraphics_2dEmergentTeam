@@ -1,7 +1,59 @@
+// Purple, Blue, Red, Yellow, Green
+let serial;
+let latestPurpleX = 0;
+let latestPurpleY = 0;
+let latestPhotoCell = 0;
+
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(windowWidth, windowHeight);
+  setupSerial();
 }
 
 function draw() {
-  background(220);
+   background(10);
+   
+  //purple blob
+  noStroke();
+  fill(blink);
+
+  // Circle's location based on forceSwing
+  circle(latestPurpleX, latestPurpleY, 100);
+  pop();
+  fill(purple);
+  textSize(14);
+
+  text('Purple X: ' + int(latestPurpleX), 20, 30);
+  text('Purple Y: ' + int(latestPurpleY), 20, 80);
+  text('Purple Speed: ' + int(latestPurpleY), 20, 120);
+}
+
+function setupSerial() {
+  serial = new p5.SerialPort();
+  // List available ports in console
+  serial.list();
+
+  serial.open('COM7');
+  serial.on('data', gotData);
+}
+function gotData() {
+  let currentString = serial.readLine();
+
+  if (!currentString) return;
+    currentString = currentString.trim();
+
+  if (!currentString) return;
+    let parts = currentString.split(',');
+
+  if (parts.length === 2) {
+    let purpleX = Number(parts[0]);
+    let purpleY = Number(parts[1]);
+    let purplePhotoCell = Number(parts[1]);
+
+    if (!isNaN(purpleX)) latestPurpleX = purpleValueX;
+    if (!isNaN(purpleY)) latestPurpleY = purpleValueY;
+    if (!isNaN(purplePhotoCell)) latestPhotoCell = purpleValueSpeed;
+  }
+}
+function windowResized() {
+resizeCanvas(windowWidth, windowHeight);
 }
