@@ -1,3 +1,13 @@
+//https://medium.com/geekculture/multiplayer-interaction-with-p5js-f04909e13b87  <- This is the link that I will be using for research on this topic
+
+let joystickX = 0;
+let joystickY = 0;
+let sensor = "";
+
+//let personalSensor1 = 0;    
+//let personalSensor2 = 0;    //If you don't need a second sensor just comment this out... Or leave it, idk if it really makes a difference
+
+
 // Purple, Blue, Red, Yellow, Green
 let serial;
 let latestPurpleX = 0;
