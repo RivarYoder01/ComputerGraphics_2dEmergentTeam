@@ -13,13 +13,10 @@ function draw() {
    background(10);
    
   //purple blob
-  noStroke();
-  fill(blink);
 
   // Circle's location based on forceSwing
   circle(latestPurpleX, latestPurpleY, 100);
-  pop();
-  fill(purple);
+  fill(300);
   textSize(14);
 
   text('Purple X: ' + int(latestPurpleX), 20, 30);
@@ -49,9 +46,9 @@ function gotData() {
     let purpleY = Number(parts[1]);
     let purplePhotoCell = Number(parts[1]);
 
-    if (!isNaN(purpleX)) latestPurpleX = purpleValueX;
-    if (!isNaN(purpleY)) latestPurpleY = purpleValueY;
-    if (!isNaN(purplePhotoCell)) latestPhotoCell = purpleValueSpeed;
+    if (!isNaN(purpleX)) latestPurpleX = purpleX;
+    if (!isNaN(purpleY)) latestPurpleY = purpleY;
+    if (!isNaN(purplePhotoCell)) latestPhotoCell = purplePhotoCell;
   }
 }
 function windowResized() {
