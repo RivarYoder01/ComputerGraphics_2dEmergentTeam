@@ -64,3 +64,47 @@ function gotData() {
 function windowResized() {
 resizeCanvas(windowWidth, windowHeight);
 }
+
+/**
+ * An idea I had for movement, wasnt sure where to put it
+ * Adjust as needed
+ * 
+ * 
+ * let blueXDir = 0;
+ * let blueYDir = 0;
+ * 
+ * xBlue = map(blueX, 0, 1024, 0, 1024); values could change - I am estimating
+ * yBlue = map(blueY, 0, 1024, 0, 1024);
+ * 
+ * speedBlue = (blueTOF, 0, 2000, 0, 10)
+ * 
+ * //Positive Positive
+ * if (xBlue > 512 && yBlue > 512){  
+      xDir = 1;
+      yDir = 1;
+
+ 
+  }
+  //Negative Negative direction
+  else if (xBlue < 512 && yBlue < 512){  
+    xDir = -1;
+    yDir = -1;
+
+  }
+  // Negative Positive Direction
+  else if (xBlue < 512 && yBlue > 512){  
+    xDir = -1;
+    yDir = 1;
+
+  }
+  // Positive Negative Direction
+  else if (xBlue > 512 && yBlue < 512){  
+    xDir = 1;
+    yDir = -1;
+
+  }
+
+  xBluePos += xDir * speedBlue * 0.1;
+  yBluePos += yDir * speedBlue * 0.1;
+
+ */
