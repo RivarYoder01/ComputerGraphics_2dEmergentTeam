@@ -66,54 +66,66 @@ resizeCanvas(windowWidth, windowHeight);
 }
 
 /**
-let joyX = 512;
-let joyY = 512;
-let blueTOF = 0;
-
+ * Updated Movement with Bounce off walls. 
+ * Working on bounce off other items.
+ * 
 let theta = 0;
 let speedBlue = 0;
-let xBluePos = 0;
-let yBluePos = 0;
+
+let xBluePos = 200;
+let yBluePos = 200;
+
+let bouncing = false;
+let bounceTimer = 0;
 
 function draw() {
-  background(10);
+  background(0);
 
-  // PURPLE BLOB
-  fill(200, 100, 255);
-  circle(latestPurpleX, latestPurpleY, 100);
-
-  fill(255);
-  textSize(14);
-  text('Purple X: ' + int(latestPurpleX), 20, 30);
-  text('Purple Y: ' + int(latestPurpleY), 20, 50);
-  text('Purple Sensor: ' + int(latestPhotoCell), 20, 70);
-
-  // BLUE BLOB
   updateDirection();
   updateSpeed();
+  moveBall();
+  checkBounce();
+  updateBounceTimer();
 
-  xBluePos += cos(theta) * speedBlue * 0.1;
-  yBluePos += sin(theta) * speedBlue * 0.1;
-
-  fill(100, 150, 255);
-  ellipse(xBluePos, yBluePos, 50, 50);
-
-  text('Joy X: ' + int(joyX), 20, 110);
-  text('Joy Y: ' + int(joyY), 20, 130);
-  text('Blue Speed Sensor: ' + int(blueTOF), 20, 150);
+  ellipse(xBluePos, yBluePos, 32, 32);
 }
 
 function updateDirection() {
+  if (bouncing) return;
+
   let jx = map(joyX, 0, 1024, -1, 1);
   let jy = map(joyY, 0, 1024, -1, 1);
 
-//Calculates the angle formed by a point, the origin, and the positive x-axis
-//https://p5js.org/reference/p5/atan2/
   theta = atan2(jy, jx);
 }
 
 function updateSpeed() {
   speedBlue = map(blueTOF, 0, 2000, 0, 100);
+}
+
+function moveBall() {
+  xBluePos += cos(theta) * speedBlue * 0.1;
+  yBluePos += sin(theta) * speedBlue * 0.1;
+}
+
+function checkBounce() {
+  let r = 16;
+
+  if (xBluePos > width - r || xBluePos < r ||
+      yBluePos > height - r || yBluePos < r) {
+
+    bouncing = true;
+    bounceTimer = 20;
+
+    theta += Math.PI; // reverse direction
+  }
+}
+
+function updateBounceTimer() {
+  if (bouncing) {
+    bounceTimer--;
+    if (bounceTimer <= 0) bouncing = false;
+  }
 }
 
 
