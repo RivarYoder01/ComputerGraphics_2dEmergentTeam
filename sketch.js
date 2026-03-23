@@ -87,7 +87,7 @@ function draw() {
   ellipse(xBluePos, yBluePos, 32, 32);
 }
 
-function updateDirectionFromJoystick() {
+function updateDirection() {
   let jx = map(joyX, 0, 1024, -1, 1);
   let jy = map(joyY, 0, 1024, -1, 1);
 
@@ -96,7 +96,7 @@ function updateDirectionFromJoystick() {
   theta = atan2(jy, jx);
 }
 
-function updateSpeedFromSensor() {
+function updateSpeed() {
   speedBlue = map(blueTOF, 0, 2000, 0, 100);
 }
 
