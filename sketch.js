@@ -66,45 +66,39 @@ resizeCanvas(windowWidth, windowHeight);
 }
 
 /**
- * An idea I had for movement, wasnt sure where to put it
- * Adjust as needed
- * 
- * 
- * let blueXDir = 0;
- * let blueYDir = 0;
- * 
- * xBlue = map(blueX, 0, 1024, 0, 1024); values could change - I am estimating
- * yBlue = map(blueY, 0, 1024, 0, 1024);
- * 
- * speedBlue = (blueTOF, 0, 2000, 0, 10)
- * 
- * //Positive Positive
- * if (xBlue > 512 && yBlue > 512){  
-      xDir = 1;
-      yDir = 1;
+let theta = 0;
+let speedBlue = 0;
 
- 
-  }
-  //Negative Negative direction
-  else if (xBlue < 512 && yBlue < 512){  
-    xDir = -1;
-    yDir = -1;
+let xBluePos = 0;
+let yBluePos = 0;
 
-  }
-  // Negative Positive Direction
-  else if (xBlue < 512 && yBlue > 512){  
-    xDir = -1;
-    yDir = 1;
+function draw() {
 
-  }
-  // Positive Negative Direction
-  else if (xBlue > 512 && yBlue < 512){  
-    xDir = 1;
-    yDir = -1;
+  updateDirection();
+  updateSpeed();
 
-  }
+  // Move using polar → rectangular Thank you Violet for this idea
 
-  xBluePos += xDir * speedBlue * 0.1;
-  yBluePos += yDir * speedBlue * 0.1;
+  xBluePos += cos(theta) * speedBlue * 0.1;
+  yBluePos += sin(theta) * speedBlue * 0.1;
+
+  translate(width/2, height/2);
+  fill(200);
+  ellipse(xBluePos, yBluePos, 32, 32);
+}
+
+function updateDirectionFromJoystick() {
+  let jx = map(joyX, 0, 1024, -1, 1);
+  let jy = map(joyY, 0, 1024, -1, 1);
+
+//Calculates the angle formed by a point, the origin, and the positive x-axis
+//https://p5js.org/reference/p5/atan2/
+  theta = atan2(jy, jx);
+}
+
+function updateSpeedFromSensor() {
+  speedBlue = map(blueTOF, 0, 2000, 0, 100);
+}
+
 
  */
