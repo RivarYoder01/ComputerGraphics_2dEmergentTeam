@@ -66,25 +66,41 @@ resizeCanvas(windowWidth, windowHeight);
 }
 
 /**
+let joyX = 512;
+let joyY = 512;
+let blueTOF = 0;
+
 let theta = 0;
 let speedBlue = 0;
-
 let xBluePos = 0;
 let yBluePos = 0;
 
 function draw() {
+  background(10);
 
+  // PURPLE BLOB
+  fill(200, 100, 255);
+  circle(latestPurpleX, latestPurpleY, 100);
+
+  fill(255);
+  textSize(14);
+  text('Purple X: ' + int(latestPurpleX), 20, 30);
+  text('Purple Y: ' + int(latestPurpleY), 20, 50);
+  text('Purple Sensor: ' + int(latestPhotoCell), 20, 70);
+
+  // BLUE BLOB
   updateDirection();
   updateSpeed();
-
-  // Move using polar → rectangular Thank you Violet for this idea
 
   xBluePos += cos(theta) * speedBlue * 0.1;
   yBluePos += sin(theta) * speedBlue * 0.1;
 
-  translate(width/2, height/2);
-  fill(200);
-  ellipse(xBluePos, yBluePos, 32, 32);
+  fill(100, 150, 255);
+  ellipse(xBluePos, yBluePos, 50, 50);
+
+  text('Joy X: ' + int(joyX), 20, 110);
+  text('Joy Y: ' + int(joyY), 20, 130);
+  text('Blue Speed Sensor: ' + int(blueTOF), 20, 150);
 }
 
 function updateDirection() {
