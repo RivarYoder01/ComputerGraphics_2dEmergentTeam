@@ -68,6 +68,7 @@ resizeCanvas(windowWidth, windowHeight);
 /**
  * Updated Movement with Bounce off walls. 
  * Working on bounce off other items.
+ * Uses Circles because thats where i am in my brain right now
  * 
 let theta = 0;
 let speedBlue = 0;
@@ -83,7 +84,7 @@ function draw() {
 
   updateDirection();
   updateSpeed();
-  moveBall();
+  moveCar();
   checkBounce();
   updateBounceTimer();
 
@@ -103,7 +104,7 @@ function updateSpeed() {
   speedBlue = map(blueTOF, 0, 2000, 0, 100);
 }
 
-function moveBall() {
+function moveCar() {
   xBluePos += cos(theta) * speedBlue * 0.1;
   yBluePos += sin(theta) * speedBlue * 0.1;
 }
@@ -185,3 +186,97 @@ This program just lets the user click and place a circle on the screen. I think 
 parts of this program and add it to what we have now to put this program on a server. 
  */
 
+
+
+/**
+ * Alyssa's Idea for a class to create standardized cars based off rectangles
+ * Styling can be added to these by someone more skilled than me
+ * This class includes bouncing off walls (to be removed but it was where i 
+ * started with the whole bouncing thing), bouncing off other cars, changing direction
+ * and speed, and a collission check that is mostly just vibes.
+ * I can not test so none of it may work.
+ * You have been warned.
+ * 
+ *class Car {
+
+  carRect(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;   //Width
+    this.h = h;   //Height
+
+    this.theta = 0;   //Direction angle
+    this.speed = 0;   //Movement speed
+
+    this.bouncing = false;   
+    this.bounceTimer = 0; 
+  }
+
+  setDirection(jx, jy) {
+    if (this.bouncing) return; 
+    this.theta = atan2(jy, jx);
+  }
+
+  setSpeed(sensorValue) {
+    this.speed = map(sensorValue, 0, 2000, 0, 100);
+  }
+
+  move() {
+    this.x += cos(this.theta) * this.speed * 0.1;
+    this.y += sin(this.theta) * this.speed * 0.1;
+  }
+
+  bounceWalls() {
+    // Half sizes for collision
+    let hw = this.w / 2;
+    let hh = this.h / 2;
+
+    if (this.x < hw || this.x > width - hw ||
+        this.y < hh || this.y > height - hh) {
+
+      this.theta += Math.PI;   // flip direction
+      this.startBounce(); 
+  }
+
+  bounceOff(other) {
+    if (this.isColliding(other)) {
+      //Angle from this car to the other car
+      let angle = atan2(other.y - this.y, other.x - this.x);
+
+      // reverse each car away from the collision
+      this.theta = angle + Math.PI; //Adding Math.Pi adds PI which changes direction 180 degrees
+      other.theta = angle + Math.PI;
+
+      this.startBounce();
+      other.startBounce();
+
+    }
+  }
+
+  //Collision Check
+  isColliding(other) {
+    return (
+      abs(this.x - other.x) < (this.w/2 + other.w/2) &&
+      abs(this.y - other.y) < (this.h/2 + other.h/2)
+    );
+
+    //https://www.geeksforgeeks.org/java/java-math-abs-method-examples/
+  }
+
+  startBounce() {
+    this.bouncing = true;
+    this.bounceTimer = 60;   //Bounce timer for Joystick overide
+  }
+
+  updateBounceTimer() {
+    if (this.bouncing) {
+      this.bounceTimer--;
+      if (this.bounceTimer <= 0) {
+        this.bouncing = false;
+      }
+    }
+  }
+
+
+}
+ */
