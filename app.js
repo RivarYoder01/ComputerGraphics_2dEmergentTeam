@@ -4,6 +4,7 @@ const http = require("http").createServer(app);
 const io = require("socket.io")(http, {
     transports: ["websocket"]
 });
+const os = require("os");
 
 const port = process.env.PORT || 8080;
 
@@ -11,9 +12,23 @@ app.get("/", (req, res) => {
     res.render("index.html");
 });
 
-http.listen(port, () => {
-    console.log(`Server is active at port:${port}`);
-});
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const name in interfaces) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === "IPv4" && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return "localhost";
+}
+
+const HOST = "0.0.0.0";
+
+http.listen(port, HOST, () => {
+    console.log(`Server running at http://${getLocalIP()}:${port}`);
+})
 
 const positions = {};
 

@@ -39,7 +39,7 @@ function setupSerial() {
   // List available ports in console
   serial.list();
 
-  serial.open('COM7');
+  serial.open('COMX');        //Please change this to COMX when pushing so that it is easier for everyone to troubleshoot
   serial.on('data', gotData);
 }
 function gotData() {
