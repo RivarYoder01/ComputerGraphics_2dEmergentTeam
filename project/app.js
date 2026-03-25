@@ -9,7 +9,7 @@ const os = require("os");
 const port = process.env.PORT || 8080;
 
 app.get("/", (req, res) => {
-    res.render("index.html");
+    res.render("public/index.html");
 });
 
 function getLocalIP() {
