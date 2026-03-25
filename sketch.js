@@ -1,4 +1,21 @@
 //https://medium.com/geekculture/multiplayer-interaction-with-p5js-f04909e13b87  <- This is the link that I will be using for research on this topic
+const express = require(`express`);
+const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http, {
+    transports: ["websocket"]
+});
+//import { networkInterfaces } from "os";
+
+const { networkInterfaces } = require("os");
+
+const port = process.env.PORT || 8080;
+
+app.get("/", (req, res) => {
+    res.render(`index.html`);
+});
+
+
 
 let joystickX = 0;
 let joystickY = 0;
@@ -39,7 +56,7 @@ function setupSerial() {
   // List available ports in console
   serial.list();
 
-  serial.open('COMX');        //Please change this to COMX when pushing so that it is easier for everyone to troubleshoot
+  serial.open('COM3');        //Please change this to COMX when pushing so that it is easier for everyone to troubleshoot
   serial.on('data', gotData);
 }
 function gotData() {
@@ -61,6 +78,50 @@ function gotData() {
     if (!isNaN(purplePhotoCell)) latestPhotoCell = purplePhotoCell;
   }
 }
+
+
+function getLocalIP() {
+    const interfaces = networkInterfaces();
+    for (const name in interfaces) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === "IPv4" && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return "localhost";
+}
+
+const HOST = "0.0.0.0";
+
+http.listen(port, HOST, () => {
+    console.log(`Server running at http://${getLocalIP()}:${port}`);
+})
+
+const positions = {};
+
+io.on("connection", (socket) => {
+    console.log(`${socket.id} connected`);
+
+    positions[socket.id] = {x: 0.5, y: 0.5 };
+
+    socket.on("disconnect", () => {
+        delete positions[socket.id];
+        console.log(`${socket.id} disconnected`);
+    });
+
+    socket.on("updatePosition", (data) => {
+        positions[socket.id].x = data.x;
+        positions[socket.id].y = data.y;
+    });
+});
+
+const frameRate = 30;
+setInterval(() => {
+    io.emit("positions", positions);
+}, 1000 / frameRate);
+
+
 function windowResized() {
 resizeCanvas(windowWidth, windowHeight);
 }
@@ -184,6 +245,62 @@ new p5(sketch, sketchContainer);
 
 This program just lets the user click and place a circle on the screen. I think we can take
 parts of this program and add it to what we have now to put this program on a server. 
+
+App.js
+const express = require("express");
+const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http, {
+    transports: ["websocket"]
+});
+const os = require("os");
+
+const port = process.env.PORT || 8080;
+
+app.get("/", (req, res) => {
+    res.render("index.html");
+});
+
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const name in interfaces) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === "IPv4" && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return "localhost";
+}
+
+const HOST = "0.0.0.0";
+
+http.listen(port, HOST, () => {
+    console.log(`Server running at http://${getLocalIP()}:${port}`);
+})
+
+const positions = {};
+
+io.on("connection", (socket) => {
+    console.log(`${socket.id} connected`);
+
+    positions[socket.id] = {x: 0.5, y: 0.5 };
+
+    socket.on("disconnect", () => {
+        delete positions[socket.id];
+        console.log(`${socket.id} disconnected`);
+    });
+
+    socket.on("updatePosition", (data) => {
+        positions[socket.id].x = data.x;
+        positions[socket.id].y = data.y;
+    });
+});
+
+const frameRate = 30;
+setInterval(() => {
+    io.emit("positions", positions);
+}, 1000 / frameRate);
  */
 
 
