@@ -18,9 +18,11 @@ let car5;
 
 // Purple, Blue, Red, Yellow, Green
 let serial;
-let latestPurpleX = 0;
-let latestPurpleY = 0;
 let latestPhotoCell = 0;
+
+let x = 200;
+let y = 200;
+let speed = 5;
 
 // Server variables
 let socket;
@@ -59,41 +61,34 @@ function draw() {
    }
    
   //purple blob
-  car1.move();
-  car1.display();
-  car2.move();
-  car2.display();
-  car3.move();
-  car3.display();
-  car4.move();
-  car4.display();
-  car5.move();
-  car5.display();
-
 
   // Circle's location based on forceSwing
   //circle(latestPurpleX, latestPurpleY, 100);
 
   for (let id in players) {
-    let px = players[id].x * width;
-    let py = players[id].y * height;
+  let px, py;
 
-    if (id === myId) {
-      fill("purple");
-    }
-    else {
-      fill("white");
-    }
-
-    circle(px, py, 100);
+  if (id === myId) {
+    
+    px = x;
+    py = y;
+    fill("purple");
+  } else {
+    
+    px = players[id].x * width;
+    py = players[id].y * height;
+    fill("white");
   }
+
+  circle(px, py, 100);
+}
 
   fill(300);
   textSize(14);
 
-  text('Purple X: ' + int(latestPurpleX), 20, 30);
-  text('Purple Y: ' + int(latestPurpleY), 20, 80);
-  text('Purple Speed: ' + int(latestPurpleY), 20, 120);
+  text('Purple X: ' + int(x), 20, 30);
+  text('Purple Y: ' + int(y), 20, 80);
+  text('Purple Speed: ' + int(y), 20, 120);
 }
 
 function setupSerial() {
@@ -122,49 +117,6 @@ function gotData() {
     if (!isNaN(purpleY)) latestPurpleY = purpleY;
     if (!isNaN(purplePhotoCell)) latestPhotoCell = purplePhotoCell;
   }
-}
-
-class Car{
-  constructor(carX, carY, carSpeed, r, g, b, carNumber){
-    this.x = carX;
-    this.y = carY;
-    this.speed = carSpeed;
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    this.number = carNumber;
-  }
-
-  // Will Change for controlers
-  move(){
-  if(this.x<windowWidth-100){
-    this.x+=this.speed;
-  }
-  }
-
-  display(){
-// Wheels
-  fill (79);
-  stroke(0,0,0);
-  circle(this.x+20, this.y, 30);
-  circle(this.x+75, this.y, 30);
-  circle(this.x+20, this.y+80, 30);
-  circle(this.x+75, this.y+80, 30);
-
-// Car
-  fill (this.r, this.g, this.b);
-  stroke(0,0,0);
-  rect(this.x, this.y, 100, 75, 20);
-  fill(0);
-  textSize(50);
-  text (this.number, this.x+33, this.y+56);
-
-// Hit Box
-  fill(0,0,0,0)
-  noStroke(); 
-  circle (this.x+50, this.y+40, 100);
-  }
-
 }
 
 function windowResized() {
