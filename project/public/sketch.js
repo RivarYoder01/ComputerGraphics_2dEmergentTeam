@@ -4,6 +4,13 @@
 let joystickX = 0;
 let joystickY = 0;
 let sensor = "";
+let carX;
+let carY;
+let car1;
+let car2;
+let car3;
+let car4;
+let car5;
 
 //let personalSensor1 = 0;    
 //let personalSensor2 = 0;    //If you don't need a second sensor just comment this out... Or leave it, idk if it really makes a difference
@@ -23,6 +30,11 @@ let players = {};
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupSerial();
+  car1 = new Car(100, 150, 5, 222, 19, 11, "1");
+  car2 = new Car(100, 300, 4, 65, 130, 245, "2");
+  car3 = new Car(100, 450, 6, 23, 148, 61, "3");
+  car4 = new Car(100, 600, 7, 252, 213, 36, "4");
+  car5 = new Car(100, 750, 6, 134, 25, 199, "5");
 
   socket = io("http://10.10.110.16:8080");
 
@@ -47,6 +59,17 @@ function draw() {
    }
    
   //purple blob
+  car1.move();
+  car1.display();
+  car2.move();
+  car2.display();
+  car3.move();
+  car3.display();
+  car4.move();
+  car4.display();
+  car5.move();
+  car5.display();
+
 
   // Circle's location based on forceSwing
   //circle(latestPurpleX, latestPurpleY, 100);
@@ -99,6 +122,49 @@ function gotData() {
     if (!isNaN(purpleY)) latestPurpleY = purpleY;
     if (!isNaN(purplePhotoCell)) latestPhotoCell = purplePhotoCell;
   }
+}
+
+class Car{
+  constructor(carX, carY, carSpeed, r, g, b, carNumber){
+    this.x = carX;
+    this.y = carY;
+    this.speed = carSpeed;
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.number = carNumber;
+  }
+
+  // Will Change for controlers
+  move(){
+  if(this.x<windowWidth-100){
+    this.x+=this.speed;
+  }
+  }
+
+  display(){
+// Wheels
+  fill (79);
+  stroke(0,0,0);
+  circle(this.x+20, this.y, 30);
+  circle(this.x+75, this.y, 30);
+  circle(this.x+20, this.y+80, 30);
+  circle(this.x+75, this.y+80, 30);
+
+// Car
+  fill (this.r, this.g, this.b);
+  stroke(0,0,0);
+  rect(this.x, this.y, 100, 75, 20);
+  fill(0);
+  textSize(50);
+  text (this.number, this.x+33, this.y+56);
+
+// Hit Box
+  fill(0,0,0,0)
+  noStroke(); 
+  circle (this.x+50, this.y+40, 100);
+  }
+
 }
 
 function windowResized() {
