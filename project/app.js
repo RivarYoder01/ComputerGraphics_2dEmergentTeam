@@ -1,15 +1,15 @@
 const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
-const io = require("socket.io")(http, {
-    transports: ["websocket"]
-});
+const io = require("socket.io")(http);
 const os = require("os");
 
 const port = process.env.PORT || 8080;
 
+app.use(express.static("public"));
+
 app.get("/", (req, res) => {
-    res.render("public/index.html");
+    res.sendFile(__dirname + "/public/index.html");
 });
 
 function getLocalIP() {

@@ -15,18 +15,56 @@ let latestPurpleX = 0;
 let latestPurpleY = 0;
 let latestPhotoCell = 0;
 
+// Server variables
+let socket;
+let myId;
+let players = {};
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupSerial();
+
+  socket = io("http://10.10.110.16:8080");
+
+  socket.on("connect", () => {
+    myId = socket.id;
+    console.log("Connected:", myId);
+  });
+
+  socket.on("positions", (data) => {
+    players = data;
+  });
 }
 
 function draw() {
    background(10);
+
+   if (socket && socket.connected) {
+    socket.emit("updatePosition", {
+      x: latestPurpleX / width,
+      y: latestPurpleY / height
+    });
+   }
    
   //purple blob
 
   // Circle's location based on forceSwing
-  circle(latestPurpleX, latestPurpleY, 100);
+  //circle(latestPurpleX, latestPurpleY, 100);
+
+  for (let id in players) {
+    let px = players[id].x * width;
+    let py = players[id].y * height;
+
+    if (id === myId) {
+      fill("purple");
+    }
+    else {
+      fill("white");
+    }
+
+    circle(px, py, 100);
+  }
+
   fill(300);
   textSize(14);
 
