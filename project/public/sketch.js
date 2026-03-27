@@ -11,9 +11,11 @@ let sensor = "";
 
 // Purple, Blue, Red, Yellow, Green
 let serial;
-let latestPurpleX = 0;
-let latestPurpleY = 0;
 let latestPhotoCell = 0;
+
+let x = 200;
+let y = 200;
+let speed = 5;
 
 // Server variables
 let socket;
@@ -38,39 +40,44 @@ function setup() {
 
 function draw() {
    background(10);
-
-   if (socket && socket.connected) {
-    socket.emit("updatePosition", {
-      x: latestPurpleX / width,
-      y: latestPurpleY / height
-    });
-   }
    
-  //purple blob
+   if (keyIsDown(87)) y -= speed;
+   if (keyIsDown(83)) y += speed;
+   if (keyIsDown(65)) x -= speed;
+   if (keyIsDown(68)) x += speed;
 
-  // Circle's location based on forceSwing
-  //circle(latestPurpleX, latestPurpleY, 100);
+   x = constrain(x, 0, width);
+   y = constrain(y, 0, height);
+
+   socket.emit("updatePosition", {
+      x: x / width,
+      y: y / height
+   });
 
   for (let id in players) {
-    let px = players[id].x * width;
-    let py = players[id].y * height;
+  let px, py;
 
-    if (id === myId) {
-      fill("purple");
-    }
-    else {
-      fill("white");
-    }
-
-    circle(px, py, 100);
+  if (id === myId) {
+    
+    px = x;
+    py = y;
+    fill("purple");
+  } else {
+    
+    px = players[id].x * width;
+    py = players[id].y * height;
+    fill("white");
   }
+
+  circle(px, py, 100);
+}
 
   fill(300);
   textSize(14);
 
-  text('Purple X: ' + int(latestPurpleX), 20, 30);
-  text('Purple Y: ' + int(latestPurpleY), 20, 80);
-  text('Purple Speed: ' + int(latestPurpleY), 20, 120);
+  text('Purple X: ' + int(x), 20, 30);
+  text('Purple Y: ' + int(y), 20, 80);
+  text('Purple Speed: ' + int(y), 20, 120);
 }
 
 function setupSerial() {
@@ -100,6 +107,8 @@ function gotData() {
     if (!isNaN(purplePhotoCell)) latestPhotoCell = purplePhotoCell;
   }
 }
+
+
 
 function windowResized() {
 resizeCanvas(windowWidth, windowHeight);
