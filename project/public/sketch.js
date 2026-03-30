@@ -8,6 +8,15 @@ let x = 200;
 let y = 200;
 let speed = 5;
 
+// Joystick controls 
+let joyX = 512;
+let joyY = 512;
+
+// Unique sensor controls
+let uniqueSens1 = 0;
+//let uniqueSens2 = 0;        // Comment this line out if you only need a single analog input for your sensor
+
+// Chooses the sensor the user will be using 
 let mySensor = null;
 let hasJoined = false;
 
@@ -68,6 +77,8 @@ function draw() {
    if (keyIsDown(83)) y += speed;
    if (keyIsDown(65)) x -= speed;
    if (keyIsDown(68)) x += speed;
+   if (joyX < 300) x -= speed;
+   if (joyX > 700) x += speed;
 
    x = constrain(x, 0, width);
    y = constrain(y, 0, height);
@@ -100,6 +111,8 @@ function draw() {
   text('Purple X: ' + int(x), 20, 30);
   text('Purple Y: ' + int(y), 20, 80);
   text('Purple Speed: ' + int(y), 20, 120);
+  text('JoyX: ' + int(joyX), 20, 150);
+  text('JoyY: ' + int(joyY), 20, 180);
 }
 
 function setupSerial() {
@@ -120,12 +133,12 @@ function gotData() {
     let parts = currentString.split(',');
 
   if (parts.length === 2) {
-    let purpleX = Number(parts[0]);
-    let purpleY = Number(parts[1]);
-    let purplePhotoCell = Number(parts[1]);
+    let jx = Number(parts[0]);
+    let jy = Number(parts[1]);
+    let purplePhotoCell = Number(parts[2]);
 
-    if (!isNaN(purpleX)) latestPurpleX = purpleX;
-    if (!isNaN(purpleY)) latestPurpleY = purpleY;
+    if (!isNaN(jx)) joyX = jx;
+    if (!isNaN(jy)) joyY = jy;
     if (!isNaN(purplePhotoCell)) latestPhotoCell = purplePhotoCell;
   }
 }
