@@ -6,17 +6,11 @@ let joystickY = 0;
 let sensor = "";
 let carX;
 let carY;
-let car1;
-let car2;
-let car3;
-let car4;
-let car5;
+
 
 //let personalSensor1 = 0;    
 //let personalSensor2 = 0;    //If you don't need a second sensor just comment this out... Or leave it, idk if it really makes a difference
 
-
-// Purple, Blue, Red, Yellow, Green
 let serial;
 let latestPhotoCell = 0;
 
@@ -28,13 +22,15 @@ let speed = 5;
 let socket;
 let myId;
 let players = {};
+let cars = [];
+let playerCars = {};
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupSerial();
 
   // WATCH THIS LINE
-  socket = io("http://10.10.110.20:8080");
+  socket = io("http://192.168.56.1:8080");
 
   socket.on("connect", () => {
     myId = socket.id;
@@ -43,28 +39,23 @@ function setup() {
 
   socket.on("positions", (data) => {
     players = data;
+
+    for (let id in players) {
+      if (!(id in playerCars)) {
+        playerCars[id] = Object.keys(playerCars).length % cars.length;
+      }
+    }
   });
 
-  car1 = new Car(100, 150, 5, 222, 19, 11, "1");
-  car2 = new Car(100, 300, 4, 65, 130, 245, "2");
-  car3 = new Car(100, 450, 6, 23, 148, 61, "3");
-  car4 = new Car(100, 600, 7, 252, 213, 36, "4");
-  car5 = new Car(100, 750, 6, 134, 25, 199, "5");
+  cars.push(new Car(100, 150, 5, 222, 19, 11, "1"));
+  cars.push(new Car(100, 300, 4, 65, 130, 245, "2"));
+  cars.push(new Car(100, 450, 6, 23, 148, 61, "3"));
+  cars.push(new Car(100, 600, 7, 252, 213, 36, "4"));
+  cars.push(new Car(100, 750, 6, 134, 25, 199, "5"));
 }
 
 function draw() {
    background(10);
-
-   car1.move();
-  car1.display();
-  car2.move();
-  car2.display();
-  car3.move();
-  car3.display();
-  car4.move();
-  car4.display();
-  car5.move();
-  car5.display();
 
     if (keyIsDown(87)) y -= speed;
    if (keyIsDown(83)) y += speed;
@@ -80,21 +71,20 @@ function draw() {
    });
 
   for (let id in players) {
-  let px, py;
+  let carIndex = playerCars[id];
+  let car = cars[carIndex];
 
   if (id === myId) {
     
-    px = x;
-    py = y;
-    fill("purple");
+    car.x = x;
+    car.y = y;
   } else {
     
-    px = players[id].x * width;
-    py = players[id].y * height;
-    fill("white");
+    car.x = players[id].x * width;
+    car.y = players[id].y * height;
   }
 
-  circle(px, py, 100);
+  car.display();
 }
 
   fill(300);
