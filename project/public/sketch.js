@@ -1,26 +1,21 @@
 //https://medium.com/geekculture/multiplayer-interaction-with-p5js-f04909e13b87  <- This is the link that I will be using for research on this topic
 
-
-let joystickX = 0;
-let joystickY = 0;
-let sensor = "";
-let carX;
-let carY;
-
-
-//let personalSensor1 = 0;    
-//let personalSensor2 = 0;    //If you don't need a second sensor just comment this out... Or leave it, idk if it really makes a difference
-
 let serial;
-let latestPhotoCell = 0;
 
+
+// These 3 variables will disappear when the actual movement logic is implemented
 let x = 200;
 let y = 200;
 let speed = 5;
 
+let mySensor = null;
+let hasJoined = false;
+
 // Server variables
 let socket;
 let myId;
+
+// This is for player locations and their car sprites that follow the players around
 let players = {};
 let cars = [];
 let playerCars = {};
@@ -29,11 +24,23 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   setupSerial();
 
+  let answer = prompt("Choose your sensor (1-5): ");
+
+  mySensor = int(answer) - 1;
+
+  if (mySensor < 0 || mySensor > 4 || isNaN(mySensor)) {
+    alert("Invalid choice. Defaulting to 1.");
+    mySensor = 0;
+  }
+
+  hasJoined = true;
+
   // WATCH THIS LINE
-  socket = io("http://192.168.56.1:8080");
+  socket = io("http://10.10.110.16:8080");
 
   socket.on("connect", () => {
     myId = socket.id;
+    playerCars[myId] = mySensor;
     console.log("Connected:", myId);
   });
 
@@ -132,13 +139,6 @@ class Car{
     this.g = g;
     this.b = b;
     this.number = carNumber;
-  }
-
-  // Will Change for controlers
-  move(){
-  if(this.x<windowWidth-100){
-    this.x+=this.speed;
-  }
   }
 
   display(){
