@@ -1,456 +1,130 @@
-//https://medium.com/geekculture/multiplayer-interaction-with-p5js-f04909e13b87  <- This is the link that I will be using for research on this topic
-
 let serial;
 
-
-// These 3 variables will disappear when the actual movement logic is implemented
+// Position
 let x = 200;
 let y = 200;
-let speed = 5;
 
-// Joystick controls 
+// Joystick
 let joyX = 512;
 let joyY = 512;
 
-// Unique sensor controls
-let uniqueSens1 = 0;
-//let uniqueSens2 = 0;        // Comment this line out if you only need a single analog input for your sensor
+// Time-of-Flight sensor (speed control)
+let tofValue = 0;
+let speedMapped = 0;
 
-// Chooses the sensor the user will be using 
-let mySensor = null;
-let hasJoined = false;
-
-// Server variables
-let socket;
-let myId;
-
-// This is for player locations and their car sprites that follow the players around
-let players = {};
-let cars = [];
-let playerCars = {};
+// Direction
+let angle = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
   setupSerial();
-
-  let answer = prompt("Choose your sensor (1-5): ");
-
-  mySensor = int(answer) - 1;
-
-  if (mySensor < 0 || mySensor > 4 || isNaN(mySensor)) {
-    alert("Invalid choice. Defaulting to 1.");
-    mySensor = 0;
-  }
-
-  hasJoined = true;
-
-  // WATCH THIS LINE
-  socket = io("http://10.10.110.16:8080");
-
-  socket.on("connect", () => {
-    myId = socket.id;
-    playerCars[myId] = mySensor;
-    console.log("Connected:", myId);
-  });
-
-  socket.on("positions", (data) => {
-    players = data;
-
-    for (let id in players) {
-      if (!(id in playerCars)) {
-        playerCars[id] = Object.keys(playerCars).length % cars.length;
-      }
-    }
-  });
-
-  cars.push(new Car(100, 150, 5, 222, 19, 11, "1"));
-  cars.push(new Car(100, 300, 4, 65, 130, 245, "2"));
-  cars.push(new Car(100, 450, 6, 23, 148, 61, "3"));
-  cars.push(new Car(100, 600, 7, 252, 213, 36, "4"));
-  cars.push(new Car(100, 750, 6, 134, 25, 199, "5"));
 }
 
 function draw() {
-   background(10);
+  background(10);
 
-    if (keyIsDown(87)) y -= speed;
-   if (keyIsDown(83)) y += speed;
-   if (keyIsDown(65)) x -= speed;
-   if (keyIsDown(68)) x += speed;
-   if (joyX < 300) x -= speed;
-   if (joyX > 700) x += speed;
+  let dx = joyX - 512;
+  let dy = -(joyY - 512); // ✅ invert Y
 
-   x = constrain(x, 0, width);
-   y = constrain(y, 0, height);
+  let deadzone = 80;
+  let magnitude = sqrt(dx * dx + dy * dy);
 
-   socket.emit("updatePosition", {
-      x: x / width,
-      y: y / height
-   });
+  if (magnitude > deadzone) {
+    dx /= magnitude;
+    dy /= magnitude;
 
-  for (let id in players) {
-  let carIndex = playerCars[id];
-  let car = cars[carIndex];
-
-  if (id === myId) {
-    
-    car.x = x;
-    car.y = y;
-  } else {
-    
-    car.x = players[id].x * width;
-    car.y = players[id].y * height;
+    angle = atan2(dy, dx);
   }
 
-  car.display();
-}
+  speedMapped = map(tofValue, 0, 1023, 0, 10);
+  speedMapped = constrain(speedMapped, 0, 10);
 
-  fill(300);
+  x += cos(angle) * speedMapped;
+  y += sin(angle) * speedMapped;
+
+  x = constrain(x, 0, width);
+  y = constrain(y, 0, height);
+
+
+  push();
+  translate(x, y);
+  rotate(angle);
+  drawCar();
+  pop();
+-
+  stroke(0, 255, 0);
+  line(x, y, x + cos(angle) * 50, y + sin(angle) * 50);
+
+  noStroke();
+  fill(255);
   textSize(14);
-
-  text('Purple X: ' + int(x), 20, 30);
-  text('Purple Y: ' + int(y), 20, 80);
-  text('Purple Speed: ' + int(y), 20, 120);
-  text('JoyX: ' + int(joyX), 20, 150);
-  text('JoyY: ' + int(joyY), 20, 180);
+  text("X: " + int(x), 20, 30);
+  text("Y: " + int(y), 20, 50);
+  text("Speed: " + speedMapped.toFixed(2), 20, 70);
+  text("Angle: " + degrees(angle).toFixed(1), 20, 90);
+  text("JoyX: " + int(joyX), 20, 110);
+  text("JoyY: " + int(joyY), 20, 130);
+  text("TOF: " + int(tofValue), 20, 150);
 }
+
+
+function drawCar() {
+  rectMode(CENTER);
+
+  fill(200, 50, 50);
+  stroke(0);
+  rect(0, 0, 100, 50, 10);
+
+  fill(50);
+  ellipse(-30, -25, 20);
+  ellipse(30, -25, 20);
+  ellipse(-30, 25, 20);
+  ellipse(30, 25, 20);
+}
+
 
 function setupSerial() {
-  serial = new p5.SerialPort();
-  // List available ports in console
-  serial.list();
+  if (typeof p5.SerialPort === "undefined") {
+    console.log("Serial library not loaded");
+    return;
+  }
 
-  serial.open('COM3');        //Please change this to COMX when pushing so that it is easier for everyone to troubleshoot
-  serial.on('data', gotData);
+  try {
+    serial = new p5.SerialPort();
+    serial.list();
+
+    serial.open('COM7'); // change if needed
+    serial.on('data', gotData);
+
+    console.log("Serial connected");
+  } catch (err) {
+    console.log("Serial failed:", err);
+  }
 }
+
+// --- READ SERIAL ---
 function gotData() {
   let currentString = serial.readLine();
-
   if (!currentString) return;
-    currentString = currentString.trim();
 
+  currentString = currentString.trim();
   if (!currentString) return;
-    let parts = currentString.split(',');
 
-  if (parts.length === 2) {
+  let parts = currentString.split(',');
+
+  if (parts.length === 3) {
     let jx = Number(parts[0]);
     let jy = Number(parts[1]);
-    let purplePhotoCell = Number(parts[2]);
+    let tof = Number(parts[2]);
 
     if (!isNaN(jx)) joyX = jx;
     if (!isNaN(jy)) joyY = jy;
-    if (!isNaN(purplePhotoCell)) latestPhotoCell = purplePhotoCell;
+    if (!isNaN(tof)) tofValue = tof;
   }
 }
 
-class Car{
-  constructor(carX, carY, carSpeed, r, g, b, carNumber){
-    this.x = carX;
-    this.y = carY;
-    this.speed = carSpeed;
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    this.number = carNumber;
-  }
-
-  display(){
-// Wheels
-  fill (79);
-  stroke(0,0,0);
-  circle(this.x+20, this.y, 30);
-  circle(this.x+75, this.y, 30);
-  circle(this.x+20, this.y+80, 30);
-  circle(this.x+75, this.y+80, 30);
-
-// Car
-  fill (this.r, this.g, this.b);
-  stroke(0,0,0);
-  rect(this.x, this.y, 100, 75, 20);
-  fill(0);
-  textSize(50);
-  text (this.number, this.x+33, this.y+56);
-
-// Hit Box
-  fill(0,0,0,0)
-  noStroke(); 
-  circle (this.x+50, this.y+40, 100);
-  }
-
-}
-
+// --- RESIZE ---
 function windowResized() {
-resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowHeight);
 }
-
-/**
- * Updated Movement with Bounce off walls. 
- * Working on bounce off other items.
- * Uses Circles because thats where i am in my brain right now
- * 
-let theta = 0;
-let speedBlue = 0;
-
-let xBluePos = 200;
-let yBluePos = 200;
-
-let bouncing = false;
-let bounceTimer = 0;
-
-function draw() {
-  background(0);
-
-  updateDirection();
-  updateSpeed();
-  moveCar();
-  checkBounce();
-  updateBounceTimer();
-
-  ellipse(xBluePos, yBluePos, 32, 32);
-}
-
-function updateDirection() {
-  if (bouncing) return;
-
-  let jx = map(joyX, 0, 1024, -1, 1);
-  let jy = map(joyY, 0, 1024, -1, 1);
-
-  theta = atan2(jy, jx);
-}
-
-function updateSpeed() {
-  speedBlue = map(blueTOF, 0, 2000, 0, 100);
-}
-
-function moveCar() {
-  xBluePos += cos(theta) * speedBlue * 0.1;
-  yBluePos += sin(theta) * speedBlue * 0.1;
-}
-
-function checkBounce() {
-  let r = 16;
-
-  if (xBluePos > width - r || xBluePos < r ||
-      yBluePos > height - r || yBluePos < r) {
-
-    bouncing = true;
-    bounceTimer = 20;
-
-    theta += Math.PI; // reverse direction
-  }
-}
-
-function updateBounceTimer() {
-  if (bouncing) {
-    bounceTimer--;
-    if (bounceTimer <= 0) bouncing = false;
-  }
-}
-
-
- */
-
-
-/**
- * Breckin's testing code
- * //get container for our canvas
-const sketchContainer = document.getElementById("sketch-container");
-
-//get socket which only uses websockets as a means of communication
-const socket = io({
-  transports: ["websocket"]
-});
-
-//the p5js sketch
-const sketch = (p) => {
-  let positions = {};
-  //the p5js setup function
-  p.setup = () => {
-    //to fill up the full container, get the width an height
-    const containerPos = sketchContainer.getBoundingClientRect();
-    const cnv = p.createCanvas(containerPos.width, containerPos.height); //the canvas!
-
-    cnv.mousePressed(() => {
-      //when you click on the canvas, update your position
-      socket.emit("updatePosition", {
-        x: p.mouseX / p.width, // always send relative number of position between 0 and 1
-        y: p.mouseY / p.height //so it positions are the relatively the same on different screen sizes.
-      });
-    });
-    p.fill(255); //sets the fill color of the circle to white
-    p.frameRate(30); //set framerate to 30, same as server
-    socket.on("positions", (data) => {
-      //get the data from the server to continually update the positions
-      positions = data;
-    });
-  };
-
-  //the p5js draw function, runs every frame rate
-  //(30-60 times / sec)
-  p.draw = () => {
-    p.background(0); //reset background to black
-    //draw a circle for every position
-    for (const id in positions) {
-      const position = positions[id];
-      p.circle(position.x * p.width, position.y * p.height, 10);
-    }
-  };
-};
-
-//initialize the sketch!
-new p5(sketch, sketchContainer);
-
-This program just lets the user click and place a circle on the screen. I think we can take
-parts of this program and add it to what we have now to put this program on a server. 
-
-App.js
-const express = require("express");
-const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http, {
-    transports: ["websocket"]
-});
-const os = require("os");
-
-const port = process.env.PORT || 8080;
-
-app.get("/", (req, res) => {
-    res.render("index.html");
-});
-
-function getLocalIP() {
-    const interfaces = os.networkInterfaces();
-    for (const name in interfaces) {
-        for (const iface of interfaces[name]) {
-            if (iface.family === "IPv4" && !iface.internal) {
-                return iface.address;
-            }
-        }
-    }
-    return "localhost";
-}
-
-const HOST = "0.0.0.0";
-
-http.listen(port, HOST, () => {
-    console.log(`Server running at http://${getLocalIP()}:${port}`);
-})
-
-const positions = {};
-
-io.on("connection", (socket) => {
-    console.log(`${socket.id} connected`);
-
-    positions[socket.id] = {x: 0.5, y: 0.5 };
-
-    socket.on("disconnect", () => {
-        delete positions[socket.id];
-        console.log(`${socket.id} disconnected`);
-    });
-
-    socket.on("updatePosition", (data) => {
-        positions[socket.id].x = data.x;
-        positions[socket.id].y = data.y;
-    });
-});
-
-const frameRate = 30;
-setInterval(() => {
-    io.emit("positions", positions);
-}, 1000 / frameRate);
- */
-
-
-
-/**
- * Alyssa's Idea for a class to create standardized cars based off rectangles
- * Styling can be added to these by someone more skilled than me
- * This class includes bouncing off walls (to be removed but it was where i 
- * started with the whole bouncing thing), bouncing off other cars, changing direction
- * and speed, and a collission check that is mostly just vibes.
- * I can not test so none of it may work.
- * You have been warned.
- * 
- *class Car {
-
-  carRect(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;   //Width
-    this.h = h;   //Height
-
-    this.theta = 0;   //Direction angle
-    this.speed = 0;   //Movement speed
-
-    this.bouncing = false;   
-    this.bounceTimer = 0; 
-  }
-
-  setDirection(jx, jy) {
-    if (this.bouncing) return; 
-    this.theta = atan2(jy, jx);
-  }
-
-  setSpeed(sensorValue) {
-    this.speed = map(sensorValue, 0, 2000, 0, 100);
-  }
-
-  move() {
-    this.x += cos(this.theta) * this.speed * 0.1;
-    this.y += sin(this.theta) * this.speed * 0.1;
-  }
-
-  bounceWalls() {
-    // Half sizes for collision
-    let hw = this.w / 2;
-    let hh = this.h / 2;
-
-    if (this.x < hw || this.x > width - hw ||
-        this.y < hh || this.y > height - hh) {
-
-      this.theta += Math.PI;   // flip direction
-      this.startBounce(); 
-  }
-
-  bounceOff(other) {
-    if (this.isColliding(other)) {
-      //Angle from this car to the other car
-      let angle = atan2(other.y - this.y, other.x - this.x);
-
-      // reverse each car away from the collision
-      this.theta = angle + Math.PI; //Adding Math.Pi adds PI which changes direction 180 degrees
-      other.theta = angle + Math.PI;
-
-      this.startBounce();
-      other.startBounce();
-
-    }
-  }
-
-  //Collision Check
-  isColliding(other) {
-    return (
-      abs(this.x - other.x) < (this.w/2 + other.w/2) &&
-      abs(this.y - other.y) < (this.h/2 + other.h/2)
-    );
-
-    //https://www.geeksforgeeks.org/java/java-math-abs-method-examples/
-  }
-
-  startBounce() {
-    this.bouncing = true;
-    this.bounceTimer = 60;   //Bounce timer for Joystick overide
-  }
-
-  updateBounceTimer() {
-    if (this.bouncing) {
-      this.bounceTimer--;
-      if (this.bounceTimer <= 0) {
-        this.bouncing = false;
-      }
-    }
-  }
-
-
-}
- */
